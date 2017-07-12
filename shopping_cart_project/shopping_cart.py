@@ -1,4 +1,4 @@
-import code
+import datetime
 
 products = [
     {"id":1, "name": "Chocolate Sandwich Cookies", "department": "snacks", "aisle": "cookies cakes", "price": 3.50},
@@ -20,29 +20,68 @@ products = [
     {"id":17, "name": "Rendered Duck Fat", "department": "meat seafood", "aisle": "poultry counter", "price": 9.99},
     {"id":18, "name": "Pizza for One Suprema Frozen Pizza", "department": "frozen", "aisle": "frozen pizza", "price": 12.50},
     {"id":19, "name": "Gluten Free Quinoa Three Cheese & Mushroom Blend", "department": "dry goods pasta", "aisle": "grains rice dried goods", "price": 3.99},
-    {"id":20, "name": "Pomegranate Cranberry & Aloe Vera Enrich Drink", "department": "beverages", "aisle": "juice nectars", "price": 4.25}]
+    {"id":20, "name": "Pomegranate Cranberry & Aloe Vera Enrich Drink", "department": "beverages", "aisle": "juice nectars", "price": 4.25}
+] # Products based on data from Instacart: https://www.instacart.com/datasets/grocery-shopping-2017
 
-def product_name(product):
-    return product["name"]
+now = datetime.datetime.now()
+time = now.strftime("%Y-%m-%d %H:%M")
+shopping_header = """
+--------------------------------------------------
+Dan's Park Slope Grocery List
+--------------------------------------------------
+Web: https://github.com/danmikus/nyu_python_course
+Phone: 212-867-5309
+Checkout Time: %s
+--------------------------------------------------
+""" % time
 
-print("--------------\nTHERE ARE", len(products), "PRODUCTS:")
+# I originally used a while loop, but read that it's wasteful, and opted for the below, adapted from https://wiki.python.org/moin/WhileLoop
 
-alpha_products = sorted(products, key = product_name)
-for i in alpha_products:
-    print("+" + i["name"], "(${0:.2f}".format(i["price"]) + ")")
+def get_input():
+    shopping_list = []
+    while True:
+        user_input = input("Please input a product identifier, or type 'DONE' if there are no more items: ")
+        if user_input.strip() == "DONE":
+            break
+        try:
+            int_input = int(user_input)
+        except ValueError:
+            print("ERROR: Please enter an integer")
+            continue
+        if int_input < 1 or int_input > len(products):
+            print("ERROR: Please enter a product number between 1 and %s" % len(products))
+            continue
+        else:
+            shopping_list.append(int(user_input))
+    return shopping_list
 
-departments = []
-for n in products:
-    departments.append(n["department"])
+def calc_list(input_list, full_list):
+    all_products = []
 
-unique_departments = list(set(departments))
+    for product in input_list:
+        temp_array = []
+        all_info = list(filter(lambda x: x["id"] == product, full_list))
+        temp_array.extend([all_info[0]["id"],all_info[0]["name"], all_info[0]["price"]])
+        all_products.append(temp_array)
+    deduped_list = dedupe(all_products)
+
+    return deduped_list
+
+def dedupe(scanned_list):
+    unique_list =  [list(x) for x in set(tuple(x) for x in scanned_list)]
+    #adopted from https://stackoverflow.com/questions/3724551/python-uniqueness-for-list-of-lists
+
+    for product in unique_list:
+        count = scanned_list.count(product)
+        product.append(count)
+
+    return unique_list
+#def get_total(input_list)
+
+if __name__ == "__main__":
+    #inputs = get_input()
+    inputs = [2, 2, 2, 6, 6, 1 ,3]
+    prices = calc_list(inputs, products)
 
 
-print("\n--------------\nTHERE ARE", len(unique_departments), "DEPARTMENTS:")
-
-for q in unique_departments:
-    count  = 0
-    for r in products:
-        if r["department"] == q:
-            count += 1
-    print("+" + q, "(" + str(count), "products)")
+import pdb; pdb.set_trace()
