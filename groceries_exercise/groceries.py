@@ -35,7 +35,7 @@ departments = []
 for n in products:
     departments.append(n["department"])
 
-unique_departments = list(set(departments))
+unique_departments = sorted(list(set(departments)))
 
 
 print("\n--------------\nTHERE ARE", len(unique_departments), "DEPARTMENTS:")
