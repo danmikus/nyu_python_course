@@ -1,9 +1,10 @@
 import datetime
 import os
 import sys
+from operator import itemgetter
 
 # I originally used a while loop, but read that it's wasteful, and opted for the below, adapted from https://wiki.python.org/moin/WhileLoop
-def get_input():
+def get_input(products):
     shopping_list = []
     while True:
         user_input = input("Please input a product identifier, or type 'DONE' if there are no more items: ")
@@ -32,7 +33,9 @@ def calc_list(input_list, full_list):
     deduped_list = dedupe(all_products)
     total_indv_cost = get_total(deduped_list)
 
-    return total_indv_cost
+    alpha_sort = sorted(total_indv_cost, key=itemgetter(1))
+
+    return alpha_sort
 
 def dedupe(scanned_list):
     unique_list =  [list(x) for x in set(tuple(x) for x in scanned_list)]
@@ -111,7 +114,7 @@ def main():
         ]
         # Products based on data from Instacart: https://www.instacart.com/datasets/grocery-shopping-2017
 
-    #inputs = get_input()
+    #inputs = get_input(products)
     inputs = [2, 2, 2, 6, 6, 1 ,3]
     prices = calc_list(inputs, products)
     subtotal = sum(i[4] for i in prices)
