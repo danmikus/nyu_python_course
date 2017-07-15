@@ -3,7 +3,6 @@ import os
 import sys
 from operator import itemgetter
 
-# I originally used a while loop, but read that it's wasteful, and opted for the below, adapted from https://wiki.python.org/moin/WhileLoop
 def get_input(products):
     shopping_list = []
     while True:
@@ -28,12 +27,12 @@ def calc_list(input_list, full_list):
     for product in input_list:
         temp_array = []
         all_info = list(filter(lambda x: x["id"] == product, full_list))
-        temp_array.extend([all_info[0]["id"],all_info[0]["name"], all_info[0]["price"]])
+        temp_array.extend([all_info[0]["id"],all_info[0]["name"], all_info[0]["price"],all_info[0]["department"]])
         all_products.append(temp_array)
     deduped_list = dedupe(all_products)
     total_indv_cost = get_total(deduped_list)
 
-    alpha_sort = sorted(total_indv_cost, key=itemgetter(1))
+    alpha_sort = sorted(total_indv_cost, key=itemgetter(3, 1))
 
     return alpha_sort
 
@@ -49,14 +48,14 @@ def dedupe(scanned_list):
 
 def get_total(input_list):
     for product in input_list:
-        product.append(product[2] * product[3])
+        product.append(product[2] * product[4])
 
     return input_list
 
 def print_to_screen(header, lists, footer):
     print(header)
     for item in lists:
-        print("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}".format(item[3], item[1], item[2], item[4]))
+        print("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}".format(item[4], item[1], item[2], item[5]))
     print(footer)
 
 def write_to_receipt(header, lists, footer, time):
@@ -71,7 +70,7 @@ def write_to_receipt(header, lists, footer, time):
 
     receipt.write(header + "\n")
     for item in lists:
-        receipt.write("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}\n".format(item[3], item[1], item[2], item[4]))
+        receipt.write("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}\n".format(item[4], item[1], item[2], item[5]))
     receipt.write(footer)
     receipt.close()
 
@@ -115,9 +114,9 @@ def main():
         # Products based on data from Instacart: https://www.instacart.com/datasets/grocery-shopping-2017
 
     #inputs = get_input(products)
-    inputs = [2, 2, 2, 6, 6, 1 ,3]
+    inputs = [2, 2, 2, 6, 6, 1 ,3, 4, 10, 11, 12, 13]
     prices = calc_list(inputs, products)
-    subtotal = sum(i[4] for i in prices)
+    subtotal = sum(i[5] for i in prices)
     tax = subtotal * 0.08875
     total = subtotal * 1.08875
 
@@ -131,9 +130,6 @@ def main():
 
     print_to_screen(receipt_header, prices, receipt_footer)
     write_to_receipt(receipt_header, prices, receipt_footer, now)
-
-
-
 
 if __name__ == "__main__":
     main()
