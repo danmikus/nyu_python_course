@@ -4,6 +4,8 @@ import sys
 from operator import itemgetter
 
 def get_input(products):
+    # Get user inputs. Validates input by checking for integer between 1 and the number of products there are.
+
     shopping_list = []
     while True:
         user_input = input("Please input a product identifier, or type 'DONE' if there are no more items: ")
@@ -22,6 +24,9 @@ def get_input(products):
     return shopping_list
 
 def calc_list(input_list, full_list):
+    # Retrieves the data for products given the user inputs. This includes deduplicating the list by
+    # getting the number of each product and caculating the total of each type
+
     all_products = []
 
     for product in input_list:
@@ -30,13 +35,13 @@ def calc_list(input_list, full_list):
         temp_array.extend([all_info[0]["id"],all_info[0]["name"], all_info[0]["price"],all_info[0]["department"]])
         all_products.append(temp_array)
     deduped_list = dedupe(all_products)
-    total_indv_cost = get_total(deduped_list)
+    total_indv_cost = sorted(get_total(deduped_list), key=itemgetter(3, 1))
 
-    alpha_sort = sorted(total_indv_cost, key=itemgetter(3, 1))
-
-    return alpha_sort
+    return total_indv_cost
 
 def dedupe(scanned_list):
+    # gets the number of each input
+
     unique_list =  [list(x) for x in set(tuple(x) for x in scanned_list)]
     #adopted from https://stackoverflow.com/questions/3724551/python-uniqueness-for-list-of-lists
 
@@ -47,18 +52,45 @@ def dedupe(scanned_list):
     return unique_list
 
 def get_total(input_list):
+    # Calculates the total for each product
+    # (e.g. 2 of a product @$1.00 ea. gets the total of $2.00)
+
     for product in input_list:
         product.append(product[2] * product[4])
 
     return input_list
 
+def organize_departments(lst):
+    # Organizes the products by their respective department
+
+    departments = list(set(x[3] for x in lst))
+    dep_lists = []
+    for y in departments:
+        temp = []
+        temp.append(y)
+        dep_lists.append(temp)
+
+    for dept in dep_lists:
+        temp_array = []
+        for product in lst:
+            if dept[0] == product[3]:
+                temp_array.append(product)
+        dept.append(temp_array)
+
+    return dep_lists
+
 def print_to_screen(header, lists, footer):
+    # Prints receipt to the terminal
+
     print(header)
-    for item in lists:
-        print("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}".format(item[4], item[1], item[2], item[5]))
+    for dept in lists:
+        print("\n    " + dept[0])
+        for product in dept[1]:
+            print("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}".format(product[4], product[1], product[2], product[5]))
     print(footer)
 
 def write_to_receipt(header, lists, footer, time):
+    # Writes the receipt to a folder called "receipts" in the pwd. If the directory doesn't exist, it's created.
 
     path = "receipts"
 
@@ -69,8 +101,10 @@ def write_to_receipt(header, lists, footer, time):
     receipt = open(os.path.join(path, file_name), 'w')
 
     receipt.write(header + "\n")
-    for item in lists:
-        receipt.write("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}\n".format(item[4], item[1], item[2], item[5]))
+    for dept in lists:
+        receipt.write("\n    " + dept[0] + "\n")
+        for product in dept[1]:
+            receipt.write("    + {0} {1} (@ ${2:.2f} ea.) - ${3:.2f}\n".format(product[4], product[1], product[2], product[5]))
     receipt.write(footer)
     receipt.close()
 
@@ -113,12 +147,15 @@ def main():
         ]
         # Products based on data from Instacart: https://www.instacart.com/datasets/grocery-shopping-2017
 
-    #inputs = get_input(products)
-    inputs = [2, 2, 2, 6, 6, 1 ,3, 4, 10, 11, 12, 13]
+    inputs = get_input(products)
     prices = calc_list(inputs, products)
     subtotal = sum(i[5] for i in prices)
     tax = subtotal * 0.08875
     total = subtotal * 1.08875
+
+    formatted_list = organize_departments(prices)
+
+
 
     receipt_footer = """    --------------------------------------------------
     Subtotal: ${0:.2f}
@@ -128,8 +165,8 @@ def main():
     Thank you for your patronage! Please come again!
     """.format(subtotal, tax, total)
 
-    print_to_screen(receipt_header, prices, receipt_footer)
-    write_to_receipt(receipt_header, prices, receipt_footer, now)
+    print_to_screen(receipt_header, formatted_list, receipt_footer)
+    write_to_receipt(receipt_header, formatted_list, receipt_footer, now)
 
 if __name__ == "__main__":
     main()
