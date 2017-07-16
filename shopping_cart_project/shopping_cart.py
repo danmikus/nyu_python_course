@@ -25,14 +25,14 @@ def get_input(products):
 
 def calc_list(input_list, full_list):
     # Retrieves the data for products given the user inputs. This includes deduplicating the list by
-    # getting the number of each product and caculating the total of each type
+    # getting the number of each product and caculating the total of each type. Also sorts products alphabetically and capitalizes department names
 
     all_products = []
 
     for product in input_list:
         temp_array = []
         all_info = list(filter(lambda x: x["id"] == product, full_list))
-        temp_array.extend([all_info[0]["id"],all_info[0]["name"], all_info[0]["price"],all_info[0]["department"]])
+        temp_array.extend([all_info[0]["id"],all_info[0]["name"], all_info[0]["price"],all_info[0]["department"].title()])
         all_products.append(temp_array)
     deduped_list = dedupe(all_products)
     total_indv_cost = sorted(get_total(deduped_list), key=itemgetter(3, 1))
@@ -61,7 +61,7 @@ def get_total(input_list):
     return input_list
 
 def organize_departments(lst):
-    # Organizes the products by their respective department
+    # Organizes the products by their respective department. Also organizes departments alphabetically.
 
     departments = list(set(x[3] for x in lst))
     dep_lists = []
@@ -77,7 +77,9 @@ def organize_departments(lst):
                 temp_array.append(product)
         dept.append(temp_array)
 
-    return dep_lists
+    alpha_dept = sorted(dep_lists, key=itemgetter(0))
+
+    return alpha_dept
 
 def print_to_screen(header, lists, footer):
     # Prints receipt to the terminal
@@ -146,6 +148,9 @@ def main():
         {"id":20, "name": "Pomegranate Cranberry & Aloe Vera Enrich Drink", "department": "beverages", "aisle": "juice nectars", "price": 4.25}
         ]
         # Products based on data from Instacart: https://www.instacart.com/datasets/grocery-shopping-2017
+
+    #inputs = range(1, 21, 1)
+    #this input is used for debugging inputs. Uncomment for use
 
     inputs = get_input(products)
     prices = calc_list(inputs, products)
